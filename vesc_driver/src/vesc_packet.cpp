@@ -129,100 +129,168 @@ VescPacketValues::VescPacketValues(std::shared_ptr<VescFrame> raw) :
 {
 }
 
+/*
+typedef struct {
+
+if (mask & ((uint32_t)1 << 0)) {
+            buffer_append_float16(send_buffer, mc_interface_temp_fet_filtered(), 1e1, &ind); 0-1
+        }
+        if (mask & ((uint32_t)1 << 1)) {
+            buffer_append_float16(send_buffer, mc_interface_temp_motor_filtered(), 1e1, &ind); 2-3
+        }
+        if (mask & ((uint32_t)1 << 2)) {
+            buffer_append_float32(send_buffer, mc_interface_read_reset_avg_motor_current(), 1e2, &ind); 4-5-6-7
+        }
+        if (mask & ((uint32_t)1 << 3)) {
+            buffer_append_float32(send_buffer, mc_interface_read_reset_avg_input_current(), 1e2, &ind); 8-9-10-11
+        }
+        if (mask & ((uint32_t)1 << 4)) {
+            buffer_append_float32(send_buffer, mc_interface_read_reset_avg_id(), 1e2, &ind); 12
+        }
+        if (mask & ((uint32_t)1 << 5)) {
+            buffer_append_float32(send_buffer, mc_interface_read_reset_avg_iq(), 1e2, &ind); 16
+        }
+        if (mask & ((uint32_t)1 << 6)) {
+            buffer_append_float16(send_buffer, mc_interface_get_duty_cycle_now(), 1e3, &ind); 20
+        }
+        if (mask & ((uint32_t)1 << 7)) {
+            buffer_append_float32(send_buffer, mc_interface_get_rpm(), 1e0, &ind); 22
+        }
+        if (mask & ((uint32_t)1 << 8)) {
+            buffer_append_float16(send_buffer, GET_INPUT_VOLTAGE(), 1e1, &ind); 26
+        }
+        if (mask & ((uint32_t)1 << 9)) {
+            buffer_append_float32(send_buffer, mc_interface_get_amp_hours(false), 1e4, &ind); 28
+        }
+        if (mask & ((uint32_t)1 << 10)) {
+            buffer_append_float32(send_buffer, mc_interface_get_amp_hours_charged(false), 1e4, &ind);  32
+        }
+        if (mask & ((uint32_t)1 << 11)) {
+            buffer_append_float32(send_buffer, mc_interface_get_watt_hours(false), 1e4, &ind);  36
+        }
+        if (mask & ((uint32_t)1 << 12)) {
+            buffer_append_float32(send_buffer, mc_interface_get_watt_hours_charged(false), 1e4, &ind);  40
+        }
+        if (mask & ((uint32_t)1 << 13)) {
+            buffer_append_int32(send_buffer, mc_interface_get_tachometer_value(false), &ind);  44
+        }
+        if (mask & ((uint32_t)1 << 14)) {
+            buffer_append_int32(send_buffer, mc_interface_get_tachometer_abs_value(false), &ind); 48
+        }
+        if (mask & ((uint32_t)1 << 15)) {
+            send_buffer[ind++] = mc_interface_get_fault(); 52
+        }
+        if (mask & ((uint32_t)1 << 16)) {
+            buffer_append_float32(send_buffer, mc_interface_get_pid_pos_now(), 1e6, &ind);  53
+        }
+        if (mask & ((uint32_t)1 << 17)) {
+            uint8_t current_controller_id = app_get_configuration()->controller_id;
+#ifdef HW_HAS_DUAL_MOTORS
+            if (mc_interface_get_motor_thread() == 2) {
+                current_controller_id = utils_second_motor_id();
+            }
+#endif
+            send_buffer[ind++] = current_controller_id;    57
+        }
+        if (mask & ((uint32_t)1 << 18)) {
+            buffer_append_float16(send_buffer, NTC_TEMP_MOS1(), 1e1, &ind);   58
+            buffer_append_float16(send_buffer, NTC_TEMP_MOS2(), 1e1, &ind);   60
+            buffer_append_float16(send_buffer, NTC_TEMP_MOS3(), 1e1, &ind);   62
+        }
+        if (mask & ((uint32_t)1 << 19)) {
+            buffer_append_float32(send_buffer, mc_interface_read_reset_avg_vd(), 1e3, &ind);
+        }
+        if (mask & ((uint32_t)1 << 20)) {
+            buffer_append_float32(send_buffer, mc_interface_read_reset_avg_vq(), 1e3, &ind);
+        }
+
+}
+*/
+
+static int32_t GetInt32FromBuffer(const BufferRangeConst &buffer, size_t offset)
+{
+    return static_cast<int32_t>((static_cast<uint32_t>(*(buffer.first + offset + 0)) << 24) +
+                                (static_cast<uint32_t>(*(buffer.first + offset + 1)) << 16) +
+                                (static_cast<uint32_t>(*(buffer.first + offset + 2)) << 8) +
+                                static_cast<uint32_t>(*(buffer.first + offset + 3)));
+}
+
+static int32_t GetInt16FromBuffer(const BufferRangeConst &buffer, size_t offset)
+{
+    return static_cast<int16_t>((static_cast<uint16_t>(*(buffer.first + offset + 0)) << 8) +
+                                static_cast<uint16_t>(*(buffer.first + offset + 1)));
+}
+
 double VescPacketValues::temp_mos1() const
 {
-  int16_t v = static_cast<int16_t>((static_cast<uint16_t>(*(payload_.first + 1)) << 8) +
-                                   static_cast<uint16_t>(*(payload_.first + 2)));
+  int32_t v = 0;
   return static_cast<double>(v) / 10.0;
 }
 
 double VescPacketValues::temp_mos2() const
 {
-  int16_t v = static_cast<int16_t>((static_cast<uint16_t>(*(payload_.first + 3)) << 8) +
-                                   static_cast<uint16_t>(*(payload_.first + 4)));
+  int16_t v = 0;
   return static_cast<double>(v) / 10.0;
 }
 
 double VescPacketValues::current_motor() const
 {
-  int32_t v = static_cast<int32_t>((static_cast<uint32_t>(*(payload_.first + 5)) << 24) +
-                                   (static_cast<uint32_t>(*(payload_.first + 6)) << 16) +
-                                   (static_cast<uint32_t>(*(payload_.first + 7)) << 8) +
-                                   static_cast<uint32_t>(*(payload_.first + 8)));
+  int32_t v = GetInt32FromBuffer(payload_, 5);
   return static_cast<double>(v) / 100.0;
 }
 
 double VescPacketValues::current_in() const
 {
-  int32_t v = static_cast<int32_t>((static_cast<uint32_t>(*(payload_.first + 9)) << 24) +
-                                   (static_cast<uint32_t>(*(payload_.first + 10)) << 16) +
-                                   (static_cast<uint32_t>(*(payload_.first + 11)) << 8) +
-                                   static_cast<uint32_t>(*(payload_.first + 12)));
+  int32_t v = GetInt32FromBuffer(payload_, 9);
   return static_cast<double>(v) / 100.0;
 }
 
 
 double VescPacketValues::duty_now() const
 {
-  int16_t v = static_cast<int16_t>((static_cast<uint16_t>(*(payload_.first + 21)) << 8) +
-                                   static_cast<uint16_t>(*(payload_.first + 22)));
+  int16_t v = GetInt16FromBuffer(payload_, 21);
   return static_cast<double>(v) / 1000.0;
 }
 
 double VescPacketValues::rpm() const
 {
-  int32_t v = static_cast<int32_t>((static_cast<uint32_t>(*(payload_.first + 23)) << 24) +
-                                   (static_cast<uint32_t>(*(payload_.first + 24)) << 16) +
-                                   (static_cast<uint32_t>(*(payload_.first + 25)) << 8) +
-                                   static_cast<uint32_t>(*(payload_.first + 26)));
+  int32_t v = GetInt32FromBuffer(payload_, 23);
   return static_cast<double>(-1 * v);
 }
 
 double VescPacketValues::amp_hours() const
 {
-  int32_t v = static_cast<int32_t>((static_cast<uint32_t>(*(payload_.first + 27)) << 24) +
-                                   (static_cast<uint32_t>(*(payload_.first + 28)) << 16) +
-                                   (static_cast<uint32_t>(*(payload_.first + 29)) << 8) +
-                                   static_cast<uint32_t>(*(payload_.first + 30)));
+  int32_t v = GetInt32FromBuffer(payload_, 29);
   return static_cast<double>(v);
 }
 
 double VescPacketValues::amp_hours_charged() const
 {
-  int32_t v = static_cast<int32_t>((static_cast<uint32_t>(*(payload_.first + 31)) << 24) +
-                                   (static_cast<uint32_t>(*(payload_.first + 32)) << 16) +
-                                   (static_cast<uint32_t>(*(payload_.first + 33)) << 8) +
-                                   static_cast<uint32_t>(*(payload_.first + 34)));
+  int32_t v = GetInt32FromBuffer(payload_, 33);
   return static_cast<double>(v);
 }
 
 double VescPacketValues::tachometer() const
 {
-  int32_t v = static_cast<int32_t>((static_cast<uint32_t>(*(payload_.first + 35)) << 24) +
-                                   (static_cast<uint32_t>(*(payload_.first + 36)) << 16) +
-                                   (static_cast<uint32_t>(*(payload_.first + 37)) << 8) +
-                                   static_cast<uint32_t>(*(payload_.first + 38)));
+  int32_t v = GetInt32FromBuffer(payload_, 45);
   return static_cast<double>(v);
 }
 
 double VescPacketValues::tachometer_abs() const
 {
-  int32_t v = static_cast<int32_t>((static_cast<uint32_t>(*(payload_.first + 39)) << 24) +
-                                   (static_cast<uint32_t>(*(payload_.first + 40)) << 16) +
-                                   (static_cast<uint32_t>(*(payload_.first + 41)) << 8) +
-                                   static_cast<uint32_t>(*(payload_.first + 42)));
+  int32_t v = GetInt32FromBuffer(payload_, 49);
   return static_cast<double>(v);
 }
 
 int VescPacketValues::fault_code() const
 {
-  return static_cast<int32_t>(*(payload_.first + 56));
+  return static_cast<int32_t>(*(payload_.first + 53));
 }
 
 double VescPacketValues::v_in() const
 {
-  int32_t v = 0;
-  return static_cast<double>(v);
+  int32_t v = GetInt16FromBuffer(payload_, 27);
+  return static_cast<double>(v / 10.);
 }
 
 double VescPacketValues::temp_pcb() const
