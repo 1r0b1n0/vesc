@@ -79,17 +79,34 @@ typedef enum
 }
 VESC_TX_T;
 
-typedef enum
-{
-  FAULT_CODE_NONE = 0,
-  FAULT_CODE_OVER_VOLTAGE,
-  FAULT_CODE_UNDER_VOLTAGE,
-  FAULT_CODE_DRV,
-  FAULT_CODE_ABS_OVER_CURRENT,
-  FAULT_CODE_OVER_TEMP_FET,
-  FAULT_CODE_OVER_TEMP_MOTOR
-}
-mc_fault_code;
+typedef enum {
+	FAULT_CODE_NONE = 0,
+	FAULT_CODE_OVER_VOLTAGE,
+	FAULT_CODE_UNDER_VOLTAGE,
+	FAULT_CODE_DRV,
+	FAULT_CODE_ABS_OVER_CURRENT,
+	FAULT_CODE_OVER_TEMP_FET,
+	FAULT_CODE_OVER_TEMP_MOTOR,
+	FAULT_CODE_GATE_DRIVER_OVER_VOLTAGE,
+	FAULT_CODE_GATE_DRIVER_UNDER_VOLTAGE,
+	FAULT_CODE_MCU_UNDER_VOLTAGE,
+	FAULT_CODE_BOOTING_FROM_WATCHDOG_RESET,
+	FAULT_CODE_ENCODER_SPI,
+	FAULT_CODE_ENCODER_SINCOS_BELOW_MIN_AMPLITUDE,
+	FAULT_CODE_ENCODER_SINCOS_ABOVE_MAX_AMPLITUDE,
+	FAULT_CODE_FLASH_CORRUPTION,
+	FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_1,
+	FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_2,
+	FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_3,
+	FAULT_CODE_UNBALANCED_CURRENTS,
+	FAULT_CODE_BRK,
+	FAULT_CODE_RESOLVER_LOT,
+	FAULT_CODE_RESOLVER_DOS,
+	FAULT_CODE_RESOLVER_LOS,
+	FAULT_CODE_FLASH_CORRUPTION_APP_CFG,
+	FAULT_CODE_FLASH_CORRUPTION_MC_CFG,
+	FAULT_CODE_ENCODER_NO_MAGNET
+} mc_fault_code;
 
 typedef enum
 {
@@ -103,27 +120,33 @@ typedef enum
 }
 disp_pos_mode;
 
-struct MC_VALUES
-{
-public:
-  double v_in;
-  double temp_mos;
-  double temp_motor;
-  double current_motor;
-  double current_in;
-  double id;
-  double iq;
-  double rpm;
-  double duty_now;
-  double amp_hours;
-  double amp_hours_charged;
-  double watt_hours;
-  double watt_hours_charged;
-  int tachometer;
-  int tachometer_abs;
-  double position;
-  mc_fault_code fault_code;
-};
+#pragma pack(push,1)
+typedef struct {
+	float v_in;
+	float temp_mos;
+	float temp_mos_1;
+	float temp_mos_2;
+	float temp_mos_3;
+	float temp_motor;
+    float current_motor;
+    float current_in;
+    float id;
+    float iq;
+    float rpm;
+    float duty_now;
+    float amp_hours;
+    float amp_hours_charged;
+    float watt_hours;
+    float watt_hours_charged;
+    int tachometer;
+    int tachometer_abs;
+    float position;
+    mc_fault_code fault_code;
+    int vesc_id;
+    float vd;
+    float vq;
+} mc_values;
+#pragma pop
 
 typedef enum
 {

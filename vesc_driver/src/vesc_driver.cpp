@@ -157,8 +157,9 @@ void VescDriver::vescPacketCallback(const std::shared_ptr<VescPacket const>& pac
     state_msg->state.current_motor = values->current_motor();
     state_msg->state.current_input = values->current_in();
     state_msg->state.speed = values->rpm();
+    state_msg->state.speed_fast = values->amp_hours();
     state_msg->state.duty_cycle = values->duty_now();
-    state_msg->state.charge_drawn = values->amp_hours();
+    //state_msg->state.charge_drawn = values->amp_hours();
     state_msg->state.charge_regen = values->amp_hours_charged();
     state_msg->state.energy_drawn = values->watt_hours();
     state_msg->state.energy_regen = values->watt_hours_charged();

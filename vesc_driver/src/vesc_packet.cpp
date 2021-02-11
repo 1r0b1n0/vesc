@@ -255,7 +255,7 @@ double VescPacketValues::duty_now() const
 double VescPacketValues::rpm() const
 {
   int32_t v = GetInt32FromBuffer(payload_, 23);
-  return static_cast<double>(-1 * v);
+  return static_cast<double>(v);
 }
 
 double VescPacketValues::amp_hours() const
